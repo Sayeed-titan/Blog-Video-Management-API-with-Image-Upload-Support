@@ -146,6 +146,18 @@ namespace MasterDetails.API.Controllers
 
             if (dto.CoverImage != null)
             {
+
+                //  Check file type
+                var allowedTypes = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(dto.CoverImage.FileName).ToLower();
+
+                if (!allowedTypes.Contains(extension))
+                    return BadRequest("Only JPG, JPEG, PNG, or WEBP images are allowed.");
+
+                //  Check file size (e.g., max 2MB)
+                if (dto.CoverImage.Length > 2 * 1024 * 1024)
+                    return BadRequest("Image size should not exceed 2MB.");
+
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
                 Directory.CreateDirectory(uploadsFolder); // Ensure folder exists
 
@@ -212,6 +224,17 @@ namespace MasterDetails.API.Controllers
                         System.IO.File.Delete(oldFilePath);
                     }
                 }
+
+                //  Check file type
+                var allowedTypes = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(dto.CoverImage.FileName).ToLower();
+
+                if (!allowedTypes.Contains(extension))
+                    return BadRequest("Only JPG, JPEG, PNG, or WEBP images are allowed.");
+
+                //  Check file size (e.g., max 2MB)
+                if (dto.CoverImage.Length > 2 * 1024 * 1024)
+                    return BadRequest("Image size should not exceed 2MB.");
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
                 Directory.CreateDirectory(uploadsFolder);
