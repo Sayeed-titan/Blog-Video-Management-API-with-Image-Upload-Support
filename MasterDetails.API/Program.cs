@@ -1,6 +1,8 @@
 using MasterDetails.API.Data;
+using MasterDetails.API.Filters;
 using MasterDetails.API.Mapping;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +28,17 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "My API", Version = "v1" });
+    options.ExampleFilters(); 
+});
+
+// Also register examples
+builder.Services.AddSwaggerExamplesFromAssemblyOf<BlogUploadDtoExample>();
+
+
 builder.Services.AddDbContext<BlogDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("appCon")));
 
 builder.Services.AddAutoMapper(typeof(BlogMappingProfile));

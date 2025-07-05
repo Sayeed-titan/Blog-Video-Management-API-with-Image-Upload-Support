@@ -2,9 +2,11 @@
 using MasterDetails.API.Data;
 using MasterDetails.API.DTOs;
 using MasterDetails.API.Entities;
+using MasterDetails.API.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace MasterDetails.API.Controllers
 {
@@ -21,7 +23,8 @@ namespace MasterDetails.API.Controllers
             _mapper = mapper;
         }
 
-
+        [SwaggerRequestExample(typeof(BlogUploadDto), typeof(BlogUploadDtoExample))]
+        [Consumes("multipart/form-data")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] BlogUploadDto dto)
         {
@@ -82,13 +85,36 @@ namespace MasterDetails.API.Controllers
                 CoverImageUrl = coverImageUrl,
                 CreatedAt = DateTime.Now,
                 BlogTags = blogTags,
-                BlogVideos = dto.BlogVideos.Select(v => _mapper.Map<BlogVideo>(v)).ToList()
+                //BlogVideos = dto.BlogVideos.Select(v => _mapper.Map<BlogVideo>(v)).ToList()
             };
 
             _context.Blogs.Add(blog);
             await _context.SaveChangesAsync();
 
-            return Ok(_mapper.Map<BlogDto>(blog));
+            // 5. Handle BlogVideos (after BlogID is generated)
+            // 5. Handle BlogVideos (after BlogID is generated)
+            if (dto.BlogVideos != null && dto.BlogVideos.Any())
+            {
+                var blogVideos = dto.BlogVideos.Select(v => new BlogVideo
+                {
+                    BlogID = blog.BlogID,
+                    VideoUrl = v.VideoUrl,
+                    Caption = v.Caption,
+                    DisplayOrder = v.DisplayOrder
+                }).ToList();
+
+                _context.BlogVideos.AddRange(blogVideos);
+                await _context.SaveChangesAsync();
+            }
+
+            var fullBlog = await _context.Blogs
+            .Include(b => b.Author)
+            .Include(b => b.BlogTags).ThenInclude(bt => bt.Tag)
+            .Include(b => b.BlogVideos)
+            .FirstOrDefaultAsync(b => b.BlogID == blog.BlogID);
+
+            return Ok(_mapper.Map<BlogDto>(fullBlog));
+
         }
 
         [HttpPut("update/{id}")]
