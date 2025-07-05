@@ -18,9 +18,10 @@ namespace MasterDetails.API.Entities{
 
         public string Content { get; set; } = string.Empty!;
 
-        public string Author { get; set; } = string.Empty!;
+        public int AuthorID { get; set; }
+        public Author Author { get; set; } = null!;
 
-       [StringLength(500)]
+        [StringLength(500)]
         public string CoverImageUrl { get; set; } = string.Empty!;
 
         public string? Tags { get; set; } = string.Empty!;
@@ -34,6 +35,8 @@ namespace MasterDetails.API.Entities{
 
         [InverseProperty("Blog")]
         public virtual ICollection<BlogVideo> BlogVideos { get; set; } = new List<BlogVideo>();
+        public ICollection<BlogTag> BlogTags { get; set; } = new List<BlogTag>();
+
     }
 
 }

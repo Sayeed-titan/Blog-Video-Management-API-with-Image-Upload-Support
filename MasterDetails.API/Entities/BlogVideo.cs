@@ -11,10 +11,8 @@ namespace MasterDetails.API.Entities
     public partial class BlogVideo
     {
         [Key]
-        [Column("BlogVideoID")]
         public int BlogVideoID { get; set; }
 
-        [Column("BlogID")]
         public int BlogID { get; set; }
 
         [StringLength(500)]
