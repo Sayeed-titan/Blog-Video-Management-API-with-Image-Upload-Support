@@ -13,8 +13,7 @@
 
         public bool IsPublished { get; set; }
 
-        public List<BlogVideoDto> BlogVideos { get; set; } = new();
-
+        public string BlogVideos { get; set; } = string.Empty;
         public IFormFile? CoverImage { get; set; }
     }
 

@@ -2,28 +2,27 @@
 using MasterDetails.API.Data;
 using MasterDetails.API.DTOs;
 using MasterDetails.API.Entities;
-using MasterDetails.API.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace MasterDetails.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BlogController : ControllerBase
+    public class BlogsController : ControllerBase
     {
         private readonly BlogDbContext _context;
         private readonly IMapper _mapper;
 
-        public BlogController(BlogDbContext context, IMapper mapper)
+        public BlogsController(BlogDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        [SwaggerRequestExample(typeof(BlogUploadDto), typeof(BlogUploadDtoExample))]
         [Consumes("multipart/form-data")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] BlogUploadDto dto)
@@ -92,20 +91,32 @@ namespace MasterDetails.API.Controllers
             await _context.SaveChangesAsync();
 
             // 5. Handle BlogVideos (after BlogID is generated)
-            // 5. Handle BlogVideos (after BlogID is generated)
-            if (dto.BlogVideos != null && dto.BlogVideos.Any())
+            if (!string.IsNullOrEmpty(dto.BlogVideos))
             {
-                var blogVideos = dto.BlogVideos.Select(v => new BlogVideo
+                try
                 {
-                    BlogID = blog.BlogID,
-                    VideoUrl = v.VideoUrl,
-                    Caption = v.Caption,
-                    DisplayOrder = v.DisplayOrder
-                }).ToList();
+                    var videos = JsonConvert.DeserializeObject<List<BlogVideoDto>>(dto.BlogVideos);
 
-                _context.BlogVideos.AddRange(blogVideos);
-                await _context.SaveChangesAsync();
+                    if (videos != null && videos.Any())
+                    {
+                        var blogVideos = videos.Select(v => new BlogVideo
+                        {
+                            BlogID = blog.BlogID,
+                            VideoUrl = v.VideoUrl,
+                            Caption = v.Caption,
+                            DisplayOrder = v.DisplayOrder
+                        }).ToList();
+
+                        _context.BlogVideos.AddRange(blogVideos);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest("Invalid BlogVideos format: " + ex.Message);
+                }
             }
+
 
             var fullBlog = await _context.Blogs
             .Include(b => b.Author)
@@ -118,6 +129,7 @@ namespace MasterDetails.API.Controllers
         }
 
         [HttpPut("update/{id}")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] BlogUploadDto dto)
         {
             var blog = await _context.Blogs
@@ -160,7 +172,7 @@ namespace MasterDetails.API.Controllers
             }
             blog.AuthorID = author.AuthorID;
 
-            // Tags (reset)
+            // Tags
             blog.BlogTags.Clear();
             foreach (var tagName in dto.TagNames)
             {
@@ -171,16 +183,31 @@ namespace MasterDetails.API.Controllers
                 blog.BlogTags.Add(new BlogTag { TagID = tag.TagID });
             }
 
-            // BlogVideos (clear/add again for simplicity)
-            blog.BlogVideos.Clear();
-            foreach (var videoDto in dto.BlogVideos)
+            // ✅ Fix: Deserialize BlogVideos string and map
+            if (!string.IsNullOrEmpty(dto.BlogVideos))
             {
-                blog.BlogVideos.Add(_mapper.Map<BlogVideo>(videoDto));
+                try
+                {
+                    var videos = JsonConvert.DeserializeObject<List<BlogVideoDto>>(dto.BlogVideos);
+                    if (videos != null)
+                    {
+                        blog.BlogVideos.Clear();
+                        foreach (var videoDto in videos)
+                        {
+                            blog.BlogVideos.Add(_mapper.Map<BlogVideo>(videoDto));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest("Invalid BlogVideos format: " + ex.Message);
+                }
             }
 
             await _context.SaveChangesAsync();
             return Ok(_mapper.Map<BlogDto>(blog));
         }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BlogDto>>> GetAll()
@@ -208,7 +235,7 @@ namespace MasterDetails.API.Controllers
             return Ok(_mapper.Map<BlogDto>(blog));
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var blog = await _context.Blogs

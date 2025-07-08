@@ -14,6 +14,9 @@ namespace MasterDetails.API.Data
         public DbSet<BlogTag> BlogTags { get; set; }
         public DbSet<BlogVideo> BlogVideos { get; set; }
 
+        public DbSet<User> Users { get; set; } 
+        public DbSet<Role> Roles { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

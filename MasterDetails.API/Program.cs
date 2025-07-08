@@ -1,12 +1,41 @@
 using MasterDetails.API.Data;
-using MasterDetails.API.Filters;
+using MasterDetails.API.Interfaces;
 using MasterDetails.API.Mapping;
+using MasterDetails.API.Repositories;
+using MasterDetails.API.Services;
+using MasterDetails.API.UnitOfWork;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["jwtSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["jwtSettings:Audience"],
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["jwtSettings:Key"]!)),
+            ValidateIssuerSigningKey = true
+        };
+    });
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
+
 
 builder.Services.AddControllers()
      .AddNewtonsoftJson(option =>
@@ -17,7 +46,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
+    options.AddPolicy("AllowFrontend",
         builder =>
         {
             builder.WithOrigins("http://localhost:5246", "http://localhost:4200")
@@ -29,20 +58,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new() { Title = "My API", Version = "v1" });
-    options.ExampleFilters(); 
-});
+builder.Services.AddSwaggerGen();
 
 // Also register examples
-builder.Services.AddSwaggerExamplesFromAssemblyOf<BlogUploadDtoExample>();
 
 
 builder.Services.AddDbContext<BlogDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("appCon")));
 
 builder.Services.AddAutoMapper(typeof(BlogMappingProfile));
-
 
 
 var app = builder.Build();
@@ -55,9 +78,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
+
 app.UseAuthorization();
+
 app.UseStaticFiles();
-app.UseCors();
+
+app.UseCors("AllowFrontend");
 
 app.MapControllers();
 

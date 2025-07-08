@@ -1,0 +1,38 @@
+<mat-sidenav-container class="sidenav-container" autosize>
+
+  <mat-sidenav #drawer mode="side" opened>
+    <mat-toolbar color="primary">Menu</mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/blogs" (click)="drawer.toggle()">Blogs</a>
+      <a mat-list-item routerLink="/blogs/create" (click)="drawer.toggle()">Create Blog</a>
+      <!-- Add more nav items here -->
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="drawer.toggle()" aria-label="Toggle menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+        <span class="app-title">TechJobs</span>
+
+      <span class="spacer"></span>
+      <!-- Auth buttons -->
+      <ng-container *ngIf="!(authService.isAuthenticated() | async); else loggedInBlock">
+        <button mat-button color="accent" routerLink="/login">Login</button>
+        <button mat-button color="accent" routerLink="/register">Register</button>
+      </ng-container>
+
+      <ng-template #loggedInBlock>
+        <span class="me-2">Welcome!</span>
+        <button mat-button color="warn" (click)="logout()">Logout</button>
+      </ng-template>
+
+    </mat-toolbar>
+
+    <!-- Main content will go here -->
+    <router-outlet></router-outlet>
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>
