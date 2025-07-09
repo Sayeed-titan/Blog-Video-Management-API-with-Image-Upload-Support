@@ -13,6 +13,8 @@ import { AuthInterceptor } from './features/blog/core/services/auth.interceptor'
 import { LoginComponent } from './auth/login/login.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RegisterComponent } from './auth/register/register.component';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
+
 
 
 @NgModule({
@@ -22,6 +24,8 @@ import { RegisterComponent } from './auth/register/register.component';
     FooterComponent,
     LoginComponent,
     RegisterComponent,
+    ConfirmDialogComponent,
+    
     
 
   ],
@@ -32,7 +36,7 @@ import { RegisterComponent } from './auth/register/register.component';
     HttpClientModule,
     MatModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
   ],
   providers: [
     {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}

@@ -7,6 +7,8 @@ import { BlogFormComponent } from './blog-form/blog-form.component';
 import { BlogListComponent } from './blog-list/blog-list.component';
 import { RouterModule } from '@angular/router';
 import { MatModule } from 'src/app/shared/mat/mat.module';
+import { TagInputComponent } from 'src/app/shared/tag-input/tag-input.component';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 
 
@@ -24,6 +26,8 @@ import { MatModule } from 'src/app/shared/mat/mat.module';
     HttpClientModule,
     RouterModule,
     MatModule,
+    SharedModule
+    
   ]
 })
 export class BlogModule { }

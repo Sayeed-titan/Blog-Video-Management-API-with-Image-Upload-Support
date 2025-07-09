@@ -20,7 +20,7 @@
   </div>
 
   <!-- Blog Cards List -->
-  <mat-card *ngFor="let blog of blogs" class="mb-3 mat-elevation-z3 position-relative fixed-height-card">
+  <mat-card *ngFor="let blog of pagedBlogs" class="mb-3 mat-elevation-z3 position-relative fixed-height-card">
     
     <!-- Edit & Delete buttons absolute top right -->
     <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;">
@@ -74,4 +74,13 @@
 
     </div>
   </mat-card>
+  <!-- Angular Material Paginator -->
+<mat-paginator
+  [length]="totalLength"
+  [pageSize]="pageSize"
+  [pageSizeOptions]="[3, 5, 10, 20]"
+  (page)="onPageChange($event)"
+  class="mb-5">
+</mat-paginator>
 </div>
+

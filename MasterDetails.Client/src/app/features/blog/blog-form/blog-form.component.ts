@@ -7,10 +7,13 @@ import { BlogService } from '../core/services/blog.service';
 import { TagService } from '../core/services/tag.service';
 import { Tag } from 'src/app/models/tag.model';
 
+import { SnackbarService } from '../../../core/services/snackbar.service';
+
+
 @Component({
   selector: 'app-blog-form',
   templateUrl: './blog-form.component.html',
-  styleUrls: ['./blog-form.component.scss']
+  styleUrls: ['./blog-form.component.css']
 })
 export class BlogFormComponent implements OnInit {
   blogForm!: FormGroup;
@@ -27,7 +30,10 @@ export class BlogFormComponent implements OnInit {
     private tagService: TagService, 
 
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+
+    private snackbar: SnackbarService 
+    
   ) {}
 
 ngOnInit(): void {
@@ -106,40 +112,47 @@ ngOnInit(): void {
     this.blogForm.setControl('blogVideos', this.fb.array(videoControls));
   }
 
-  submit(): void {
-    const formData = new FormData();
+submit(): void {
+  const formData = new FormData();
 
-    formData.append('title', this.blogForm.value.title);
-    formData.append('content', this.blogForm.value.content);
-    formData.append('authorName', this.blogForm.value.authorName);
-    formData.append('isPublished', this.blogForm.value.isPublished.toString());
+  formData.append('title', this.blogForm.value.title);
+  formData.append('content', this.blogForm.value.content);
+  formData.append('authorName', this.blogForm.value.authorName);
+  formData.append('isPublished', this.blogForm.value.isPublished.toString());
 
-    this.blogForm.value.tagNames.forEach((tagName: string) => {
-      formData.append('tagNames', tagName);
-    });
+  this.blogForm.value.tagNames.forEach((tagName: string) => {
+    formData.append('tagNames', tagName);
+  });
 
-    formData.append('blogVideos', JSON.stringify(this.blogForm.value.blogVideos));
+  formData.append('blogVideos', JSON.stringify(this.blogForm.value.blogVideos));
 
-    if (this.coverImageFile) {
-      formData.append('coverImage', this.coverImageFile, this.coverImageFile.name);
-    }
-
-    if (this.isEditMode) {
-      this.blogService.update(this.blogId, formData).subscribe({
-        next: () => {
-          alert('Blog updated!');
-          this.router.navigate(['/blogs']);
-        },
-        error: (err) => console.error('Update failed:', err)
-      });
-    } else {
-      this.blogService.create(formData).subscribe({
-        next: () => {
-          alert('Blog created!');
-          this.router.navigate(['/blogs']);
-        },
-        error: (err) => console.error('Creation failed:', err)
-      });
-    }
+  if (this.coverImageFile) {
+    formData.append('coverImage', this.coverImageFile, this.coverImageFile.name);
   }
+
+  if (this.isEditMode) {
+    this.blogService.update(this.blogId, formData).subscribe({
+      next: () => {
+        this.snackbar.show('✅ Blog updated successfully!', 'Close');
+        this.router.navigate(['/blogs']);
+      },
+      error: (err) => {
+        console.error('Update failed:', err);
+        this.snackbar.show('❌ Update failed. Please try again.', 'Close', 4000);
+      }
+    });
+  } else {
+    this.blogService.create(formData).subscribe({
+      next: () => {
+        this.snackbar.show('✅ Blog created successfully!', 'Close');
+        this.router.navigate(['/blogs']);
+      },
+      error: (err) => {
+        console.error('Creation failed:', err);
+        this.snackbar.show('❌ Blog creation failed. Please try again.', 'Close', 4000);
+      }
+    });
+  }
+}
+
 }

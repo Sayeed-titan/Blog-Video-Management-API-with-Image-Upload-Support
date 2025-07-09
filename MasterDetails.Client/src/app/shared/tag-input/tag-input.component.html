@@ -1,0 +1,21 @@
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label>{{ label }}</mat-label>
+  <mat-chip-grid #chipGrid aria-label="Tag input">
+    <mat-chip-row *ngFor="let tag of tagNames; let i = index" (removed)="removeTag(i)">
+      {{ tag }}
+      <button matChipRemove>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip-row>
+
+    <input
+      [matChipInputFor]="chipGrid"
+      [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+      [matChipInputAddOnBlur]="true"
+      (matChipInputTokenEnd)="addTag($event)"
+      [disabled]="tagNames.length >= maxTags"
+      placeholder="Type and press Enter"
+    />
+  </mat-chip-grid>
+  <mat-hint align="end">{{ tagNames.length }}/{{ maxTags }} tags</mat-hint>
+</mat-form-field>

@@ -25,7 +25,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core'; // for native Date support
-
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 
 @NgModule({
@@ -54,7 +54,8 @@ import { MatNativeDateModule } from '@angular/material/core'; // for native Date
     MatSelectModule,
     MatCheckboxModule,
     MatDatepickerModule,
-    MatNativeDateModule // for native Date support
+    MatNativeDateModule,
+    MatPaginatorModule
   ]
 })
 export class MatModule { }
